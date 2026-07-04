@@ -7,8 +7,12 @@ let engine;
 let world;
 
 let ground;
-let ball;
+let balls = [];
 let boxes = [];
+
+let score = 0;
+let currentBall = 0;
+let destroyedBoxes = 0;
 
 function setup() {
     createCanvas(900, 500);
@@ -26,20 +30,11 @@ function setup() {
     );
     World.add(world, ground);
 
-    ball = Bodies.circle(
-        100,
-        400,
-        20,
-        {
-            restitution: 0.8,
-        }
-    );
-    World.add(world, ball);
-
     rectMode(CENTER);
     ellipseMode(RADIUS);
 
-    createCastle()
+    createCastle();
+    createBalls();
 }
 
 function draw() {
@@ -55,36 +50,28 @@ function draw() {
         20
     )
 
-    push();
-    translate(
-        ball.position.x,
-        ball.position.y
-    );
-
-    rotate(ball.angle);
-
-    fill(50);
-
-    ellipse(
-        0,
-        0,
-        20
-    );
-    pop();
-
     drawCastle();
+    drawBalls();
+
+    text("Score: " + score, 20,30)
+
+    updateScore();
 }
 
 function keyPressed() {
     if(key === " ") {
-        Body.applyForce(
-            ball,
-            ball.position,
-            {
-                x: 0.08,
-                y: -0.03
-            }
-        );
+        if(currentBall < balls.length) {
+            Body.setStatic(balls[currentBall], false);
+            Body.applyForce(
+                balls[currentBall],
+                balls[currentBall].position,
+                {
+                    x: 0.08,
+                    y: -0.03
+                }
+            );
+            currentBall++;
+        }
     }
 }
 
@@ -92,8 +79,8 @@ function createCastle() {
     let startX = 650;
     let startY = 420;
 
-    for (let row = 0; row < 4; row++) {
-        for (let col = 0; col < 5; col++) {
+    for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 4; col++) {
             let box = Bodies.rectangle(
                 startX + col * 45,
                 startY - row * 45,
@@ -103,9 +90,26 @@ function createCastle() {
                     restitution: 0.2
                 }
             );
+            box.counted = false;
             boxes.push(box);
             World.add(world, box);
         }
+    }
+}
+
+function createBalls() {
+    for (let i = 0; i < 3; i++) {
+        let ball = Bodies.circle(
+            150,
+            455,
+            20,
+            {
+                restitution: 0.8,
+            }
+        );
+        Body.setStatic(ball, true);
+        balls.push(ball);
+        World.add(world, ball);
     }
 }
 
@@ -128,5 +132,41 @@ function drawCastle() {
             40
         ),
         pop();
+    }
+}
+
+function drawBalls() {
+    fill(50);
+
+    for (let ball of balls) {
+        push();
+        translate(
+            ball.position.x,
+            ball.position.y
+        );
+
+        rotate(ball.angle);
+
+        ellipse(
+            0,
+            0,
+            20
+        );
+        pop();
+    }
+}
+
+function updateScore() {
+    for (let box of boxes) {
+        if(!box.counted && box.position.y > height - 50) {
+            box.counted = true;
+            score += 10;
+            destroyedBoxes++;
+        }
+    }
+
+    if(destroyedBoxes == boxes.length) {
+        score += 100;
+        destroyedBoxes++;
     }
 }
