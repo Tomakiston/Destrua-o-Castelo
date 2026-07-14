@@ -66,7 +66,7 @@ function keyPressed() {
                 balls[currentBall],
                 balls[currentBall].position,
                 {
-                    x: 0.08,
+                    x: 0.1,
                     y: -0.03
                 }
             );
@@ -77,7 +77,7 @@ function keyPressed() {
 
 function createCastle() {
     let startX = 650;
-    let startY = 420;
+    let startY = 450;
 
     for (let row = 0; row < 5; row++) {
         for (let col = 0; col < 4; col++) {
@@ -91,6 +91,8 @@ function createCastle() {
                 }
             );
             box.counted = false;
+            box.startY = box.position.y;
+
             boxes.push(box);
             World.add(world, box);
         }
@@ -98,7 +100,7 @@ function createCastle() {
 }
 
 function createBalls() {
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 5; i++) {
         let ball = Bodies.circle(
             150,
             455,
@@ -158,15 +160,19 @@ function drawBalls() {
 
 function updateScore() {
     for (let box of boxes) {
-        if(!box.counted && box.position.y > height - 50) {
+        if(!box.counted && (abs(box.angle) > 0.5 || box.position.y > box.startY + 60)) {
             box.counted = true;
             score += 10;
             destroyedBoxes++;
         }
     }
 
-    if(destroyedBoxes == boxes.length) {
-        score += 100;
-        destroyedBoxes++;
+    if(destroyedBoxes == boxes.length || score >= 120) {
+        push();
+        fill(0,150,0);
+        textSize(35);
+        textAlign(CENTER);
+        text("Você Venceu!", width/2, 50);
+        pop();
     }
 }
